@@ -24,9 +24,16 @@
             </select>
         </div>
 
-        <div id="fen-loader">
-            <input type="text" id="fen-input" placeholder="Pega una cadena FEN aquí">
-            <button id="load-fen-button">Cargar Posición FEN</button>
+        <div id="game-mode-selector">
+            <label>Modo de Juego:</label>
+            <div>
+                <input type="radio" id="mode-vs-ai" name="gameMode" value="vsAI" checked>
+                <label for="mode-vs-ai">Jugador vs. IA</label>
+            </div>
+            <div>
+                <input type="radio" id="mode-vs-player" name="gameMode" value="vsPlayer">
+                <label for="mode-vs-player">Jugador vs. Jugador</label>
+            </div>
         </div>
 
         <div id="promotion-dialog" class="hidden">

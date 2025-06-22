@@ -40,6 +40,7 @@ let currentMoveNumber = 1;
 let pendingPromotionMoveDetails = null;
 let gameEnded = false;
 let history = []; // Historial para UNDO
+let gameMode = 'vsAI';
 
 // Variables para el Enroque (rastrean si rey o torres se han movido de su posición inicial)
 let whiteKingMoved = false;
@@ -281,8 +282,11 @@ function checkGameEndConditions() {
         }
     }
 
-    if (!gameEnded && currentPlayer === 'black') {
-        chessboardElement.style.pointerEvents = 'none';
+    if (!gameEnded) {
+    // PREGUNTA: ¿Es el turno de las negras y estamos en modo vs. IA?
+    if (currentPlayer === 'black' && gameMode === 'vsAI') {
+        // --- RUTA DE LA IA ---
+        chessboardElement.style.pointerEvents = 'none'; // Bloqueamos el tablero
         undoButton.style.pointerEvents = 'none';
         updateStatusMessage('La IA (Negras) está pensando...');
         
@@ -291,16 +295,18 @@ function checkGameEndConditions() {
             if (aiMoveData && aiMoveData.move) {
                 performMove(aiMoveData.move.from, aiMoveData.move.to);
             } else {
-                console.error("La IA no pudo encontrar un movimiento o se declaró jaque mate/ahogado inesperadamente.");
-                updateStatusMessage("Error de la IA o situación de tablas. Tablero habilitado.");
+                console.error("La IA no pudo encontrar un movimiento...");
+                updateStatusMessage("Error de la IA o tablas. Tablero habilitado.");
                 chessboardElement.style.pointerEvents = 'auto';
                 undoButton.style.pointerEvents = 'auto';
             }
         }, 100);
-    } else if (!gameEnded && currentPlayer === 'white') {
+    } else {
+        // --- RUTA DEL JUGADOR HUMANO (BLANCO O NEGRO EN MODO vsPlayer) ---
+        // Si no es la IA, simplemente habilitamos el tablero para el siguiente jugador humano.
         chessboardElement.style.pointerEvents = 'auto';
         undoButton.style.pointerEvents = 'auto';
-    }
+    }}
 }
 
 // -----------------------------------------------------------------------------------------------------------------
@@ -1176,17 +1182,21 @@ function initializeBoard() {
 // 13. Manejadores de Eventos (Botones y Selector de Dificultad)
 // -----------------------------------------------------------------------------------------------------------------
 resetButton.addEventListener('click', () => {
+    // Leemos el valor del modo de juego seleccionado antes de reiniciar
+    const selectedMode = document.querySelector('input[name="gameMode"]:checked').value;
+    gameMode = selectedMode;
+
+    // Ocultamos o mostramos el selector de dificultad según el modo
+    const difficultySelector = document.getElementById('difficulty-selector');
+    if (gameMode === 'vsAI') {
+        difficultySelector.style.display = 'flex'; // O 'block'
+    } else {
+        difficultySelector.style.display = 'none';
+    }
+
     selectedSquare = null;
     currentPlayer = 'white';
-    initializeBoard(); // Reinicia el juego
-});
-
-undoButton.addEventListener('click', undoLastMove);
-
-difficultyLevelSelect.addEventListener('change', (event) => {
-    AI_DEPTH = parseInt(event.target.value);
-    updateStatusMessage(`Dificultad de la IA ajustada a ${event.target.options[event.target.selectedIndex].text}.`);
-    console.log("DEBUG: AI_DEPTH ajustada a:", AI_DEPTH);
+    initializeBoard(); // Reinicia el juego con la configuración correcta
 });
 
 
@@ -1201,6 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const originalUndoButton = document.getElementById('undo-button');
     const originalDifficultySelector = document.getElementById('difficulty-selector');
     const originalPromotionDialog = document.getElementById('promotion-dialog');
+    const originalGameModeSelector = document.getElementById('game-mode-selector');
 
     // Construir la nueva estructura del layout del juego
     const gameLayoutContainer = document.createElement('div');
@@ -1227,6 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sidePanel.appendChild(originalStatusMessageElement);
     sidePanel.appendChild(blackCapturedPiecesElement); // Creado en JS
     sidePanel.appendChild(whiteCapturedPiecesElement); // Creado en JS
+    sidePanel.appendChild(originalGameModeSelector);  
     sidePanel.appendChild(originalResetButton);
     sidePanel.appendChild(originalUndoButton);
     sidePanel.appendChild(originalDifficultySelector);
@@ -1241,7 +1253,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Luego añade los elementos en el orden deseado dentro de gameContainer
     gameContainer.appendChild(originalPromotionDialog);
     gameContainer.appendChild(gameLayoutContainer);
+
+    // --- LÓGICA DE INICIALIZACIÓN CORREGIDA (LA PARTE NUEVA) ---
+
+    // 1. Leemos el modo de juego seleccionado EN CUANTO CARGA LA PÁGINA
+    const selectedMode = document.querySelector('input[name="gameMode"]:checked').value;
+    gameMode = selectedMode;
+
+    // 2. Ocultamos o mostramos el selector de dificultad según el modo inicial
+    if (gameMode === 'vsAI') {
+        originalDifficultySelector.style.display = 'flex';
+    } else {
+        originalDifficultySelector.style.display = 'none';
+    }
     
-    // Ahora sí, inicializa el tablero y guarda el estado inicial.
+    // 3. Ahora sí, inicializamos el tablero con la configuración correcta
     initializeBoard();
 });

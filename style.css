@@ -366,7 +366,23 @@ h1 {
     animation: pulse-check 1s infinite alternate;
 }
 
-
+/* Estilos para el selector de modo de juego */
+#game-mode-selector {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+}
+#game-mode-selector label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+#game-mode-selector div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
 
 @keyframes pulse-check {
     from {
